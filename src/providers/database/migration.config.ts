@@ -21,9 +21,9 @@ export const datasource = new DataSource({
   database: process.env.DB_NAME,
   port: parseInt(process.env.DB_PORT),
   // synchronize: false,
-  // ssl: {
-  //   rejectUnauthorized: false,
-  // },
+  ssl: {
+    rejectUnauthorized: false,
+  },
 
   migrations: [],
   entities: [__dirname + '/../../**/*.entity{.ts,.js}'],

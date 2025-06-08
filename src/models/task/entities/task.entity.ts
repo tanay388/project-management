@@ -1,0 +1,116 @@
+import {
+  Entity,
+  Column,
+  BaseEntity,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  ManyToOne,
+  JoinColumn
+} from 'typeorm';
+import { User } from '../../user/entities/user.entity';
+import { BaseClassEntity } from 'src/common/entities/base.extend-entity';
+
+export enum TaskType {
+  task = 'task',
+  engineering_request = 'engineering_request',
+  business_onboarding = 'business_onboarding',
+  functionality_review = 'functionality_review'
+}
+
+export enum TaskStatus {
+  new = 'new',
+  in_progress = 'in_progress',
+  in_review = 'in_review',
+  completed = 'completed'
+}
+
+export enum TaskPriority {
+  low = 'low',
+  medium = 'medium',
+  high = 'high',
+  urgent = 'urgent'
+}
+
+@Entity()
+export class Task extends BaseClassEntity {
+
+  @Column()
+  title: string;
+
+  @Column({
+    type: 'enum',
+    enum: TaskType,
+    default: TaskType.task
+  })
+  type: TaskType;
+
+  @ManyToOne(() => User, { eager: true })
+  @JoinColumn()
+  requestedBy: User;
+
+  @Column({
+    type: 'enum',
+    enum: TaskPriority,
+    default: TaskPriority.medium
+  })
+  priority: TaskPriority;
+
+  @Column({ type: 'date' })
+  targetCompletionDate: Date;
+
+  @Column({ type: 'text' })
+  description: string;
+
+  @Column({ type: 'text' })
+  businessJustification: string;
+
+  @Column({ type: 'text', nullable: true })
+  technicalRequirements: string;
+
+  @Column({ type: 'text', nullable: true })
+  dependencies: string;
+
+  @Column({ type: 'text' })
+  acceptanceCriteria: string;
+
+  @ManyToOne(() => User, { eager: true })
+  @JoinColumn()
+  assignedTo: User;
+
+  @Column({ nullable: true })
+  adminPanelLink: string;
+
+  @Column({
+    type: 'enum',
+    enum: TaskStatus,
+    default: TaskStatus.new
+  })
+  status: TaskStatus;
+
+  @Column('simple-array', { nullable: true })
+  attachments: string[];
+
+  toJSON() {
+    return {
+      id: this.id,
+      title: this.title,
+      type: this.type,
+      requestedBy: this.requestedBy?.toReturnJson(),
+      priority: this.priority,
+      targetCompletionDate: this.targetCompletionDate,
+      description: this.description,
+      businessJustification: this.businessJustification,
+      technicalRequirements: this.technicalRequirements,
+      dependencies: this.dependencies,
+      acceptanceCriteria: this.acceptanceCriteria,
+      assignedTo: this.assignedTo?.toReturnJson(),
+      adminPanelLink: this.adminPanelLink,
+      status: this.status,
+      attachments: this.attachments,
+      createdAt: this.createdAt,
+      updatedAt: this.updateAt
+    };
+  }
+}

@@ -5,43 +5,45 @@ import {
   IsEnum,
   IsOptional,
   IsString,
-  MinLength,
 } from 'class-validator';
-import { Gender } from '../entities/user.entity';
+import { Department, Gender, UserRole } from '../entities/user.entity';
 
-export class SignUpUserDto {
+export class CreateUserDto {
   @ApiProperty()
-  @IsOptional()
+  @IsString()
   name: string;
 
   @ApiProperty()
   @IsOptional()
-  phone: string;
+  @IsString()
+  phone?: string;
 
   @ApiProperty()
   @IsEmail()
   email: string;
 
   @ApiProperty()
-  @MinLength(6)
-  password: string;
-
-  @ApiProperty()
   @Type(() => Date)
   @IsOptional()
-  birthDate: Date;
+  birthDate?: Date;
 
   @ApiProperty()
   @IsEnum(Gender)
   @IsOptional()
-  gender: Gender;
+  gender?: Gender;
 
   @ApiProperty()
-  @IsEnum(['user', 'shop'])
-  from: 'user' | 'shop';
-
-  @ApiProperty()
+  @IsEnum(Department)
   @IsOptional()
+  department?: Department;
+
+  @ApiProperty()
   @IsString()
-  oldToken?: string;
+  @IsOptional()
+  designation?: string;
+
+  @ApiProperty()
+  @IsEnum(UserRole)
+  @IsOptional()
+  role?: UserRole;
 }

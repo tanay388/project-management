@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { RolesGuard } from './guards/roles.guard';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './constants';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -20,7 +22,14 @@ import { CacheModule } from '@nestjs/cache-manager';
     JwtModule.register({ secret: jwtConstants.secret }),
   ],
   controllers: [UserController],
-  providers: [JwtStrategy, UserService],
+  providers: [
+    JwtStrategy,
+    UserService,
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+  ],
   exports: [UserService],
 })
 export class UserModule {}

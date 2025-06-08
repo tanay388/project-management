@@ -15,6 +15,28 @@ import { NotificationToken } from 'src/providers/notification/entities/notificat
 export enum UserRole {
   user = 'user',
   admin = 'admin',
+  projectManager = 'project_manager',
+  teamLead = 'team_lead',
+  developer = 'developer',
+  designer = 'designer',
+  qa = 'qa'
+}
+
+export enum UserStatus {
+  pending = 'pending',
+  active = 'active',
+  inactive = 'inactive',
+  rejected = 'rejected'
+}
+
+export enum Department {
+  engineering = 'engineering',
+  design = 'design',
+  productManagement = 'product_management',
+  qualityAssurance = 'quality_assurance',
+  marketing = 'marketing',
+  sales = 'sales',
+  humanResources = 'human_resources'
 }
 
 export enum Gender {
@@ -58,9 +80,6 @@ export class User extends BaseEntity {
   @Column({ nullable: true })
   birthDate: Date;
 
-  @Exclude()
-  @Column({ nullable: true })
-  stripeId?: string;
 
   @Column({
     type: 'enum',
@@ -72,18 +91,38 @@ export class User extends BaseEntity {
   @Exclude()
   @Column({
     type: 'enum',
-    enum: ['user', 'admin'],
-    default: 'user',
+    enum: UserRole,
+    default: UserRole.user,
   })
   role: UserRole;
+
+  @Column({
+    type: 'enum',
+    enum: UserStatus,
+    default: UserStatus.pending,
+  })
+  status: UserStatus;
+
+  @Column({
+    type: 'enum',
+    enum: Department,
+    nullable: true
+  })
+  department: Department;
+
+  @Column({ nullable: true })
+  designation: string;
+
+  @Column({ nullable: true })
+  employeeId: string;
 
   @OneToMany(() => NotificationToken, (nt) => nt.user, { onDelete: 'CASCADE' })
   notificationTokens: NotificationToken[];
 
   toReturnJson() {
-    const { id, name, email, phone, photo, role, birthDate } = this;
+    const { id, name, email, phone, photo, role, birthDate, status, department, designation, employeeId } = this;
 
-    return { id, name, email, phone, photo, role, birthDate };
+    return { id, name, email, phone, photo, role, birthDate, status, department, designation, employeeId };
   }
 
   withJWT(jwtService: JwtService) {

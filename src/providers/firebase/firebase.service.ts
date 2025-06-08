@@ -8,6 +8,11 @@ import { ConfigService } from '@nestjs/config';
 import { UserRecord } from 'firebase-admin/lib/auth/user-record';
 import axios from 'axios';
 export type FirebaseUser = DecodedIdToken;
+export type CreateFirebaseUserParams = {
+  email: string;
+  password: string;
+  displayName?: string;
+};
 
 @Injectable()
 export class FirebaseService {
@@ -98,5 +103,54 @@ export class FirebaseService {
   async getAccessToken(): Promise<string> {
     const accessToken = await this.app.options.credential.getAccessToken();
     return accessToken.access_token;
+  }
+
+  /**
+   * Creates a new user in Firebase Authentication
+   * @param params User creation parameters including email and password
+   * @returns The created user record
+   */
+  async createUser(params: CreateFirebaseUserParams): Promise<UserRecord> {
+    try {
+      return await this.auth.createUser({
+        email: params.email,
+        password: params.password,
+        displayName: params.displayName || params.email.split('@')[0],
+        emailVerified: false,
+      });
+    } catch (error) {
+      console.error('Error creating Firebase user:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Checks if a user with the given email exists in Firebase
+   * @param email The email to check
+   * @returns The user record if found, null otherwise
+   */
+  async getUserByEmail(email: string): Promise<UserRecord | null> {
+    try {
+      return await this.auth.getUserByEmail(email);
+    } catch (error) {
+      if (error.code === 'auth/user-not-found') {
+        return null;
+      }
+      console.error('Error checking Firebase user:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Deletes a user from Firebase Authentication
+   * @param uid The user ID to delete
+   */
+  async deleteUser(uid: string): Promise<void> {
+    try {
+      await this.auth.deleteUser(uid);
+    } catch (error) {
+      console.error('Error deleting Firebase user:', error);
+      throw error;
+    }
   }
 }
