@@ -41,7 +41,6 @@ export class UserService {
   async getProfileById(uid: string) {
     const user = await User.findOne({
       where: { id: uid },
-      relations: ['owen', 'worksIn'],
     });
     return user;
   }
