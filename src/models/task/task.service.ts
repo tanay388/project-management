@@ -6,6 +6,8 @@ import { User } from '../user/entities/user.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { TaskFilterDto } from './dto/task-filter.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { DashboardFilterDto } from './dto/dashboard-filter.dto';
+import { DashboardResponseDto, TaskStats, UserStats } from './dto/dashboard-response.dto';
 import { UploaderService } from 'src/providers/uploader/uploader.service';
 import { FirebaseUser } from 'src/providers/firebase/firebase.service';
 
@@ -146,5 +148,110 @@ export class TaskService {
     if (result.affected === 0) {
       throw new NotFoundException(`Task with ID ${id} not found`);
     }
+  }
+
+  async getDashboardStats(filters: DashboardFilterDto): Promise<DashboardResponseDto> {
+    const where: FindOptionsWhere<Task> = {};
+    if (filters.fromDate && filters.toDate) {
+      where.targetCompletionDate = Between(filters.fromDate, filters.toDate);
+    }
+
+    const tasks = await this.taskRepository.find({
+      where,
+      relations: ['requestedBy', 'assignedTo'],
+    });
+
+    const taskStats = this.calculateTaskStats(tasks);
+    const userStats = this.calculateUserStats(tasks);
+    const recentTasks = await this.getRecentTasks();
+
+    return {
+      taskStats,
+      userStats,
+      recentTasks,
+    };
+  }
+
+  private calculateTaskStats(tasks: Task[]): TaskStats {
+    const stats = {
+      totalTasks: tasks.length,
+      completedTasks: 0,
+      inProgressTasks: 0,
+      newTasks: 0,
+      inReviewTasks: 0,
+      totalStoryPoints: 0,
+      averageProgress: 0,
+      overallEfficiency: 0,
+    };
+
+    let totalProgress = 0;
+
+    tasks.forEach(task => {
+      stats.totalStoryPoints += task.storyPoints;
+      totalProgress += task.progress || 0;
+
+      switch (task.status) {
+        case TaskStatus.completed:
+          stats.completedTasks++;
+          break;
+        case TaskStatus.in_progress:
+          stats.inProgressTasks++;
+          break;
+        case TaskStatus.new:
+          stats.newTasks++;
+          break;
+        case TaskStatus.in_review:
+          stats.inReviewTasks++;
+          break;
+      }
+    });
+
+    stats.averageProgress = tasks.length > 0 ? totalProgress / tasks.length : 0;
+    stats.overallEfficiency = stats.totalStoryPoints > 0 ? 
+      (stats.completedTasks * 100) / stats.totalTasks : 0;
+
+    return stats;
+  }
+
+  private calculateUserStats(tasks: Task[]): UserStats[] {
+    const userStatsMap = new Map<string, UserStats>();
+
+    tasks.forEach(task => {
+      if (!task.assignedTo) return;
+
+      const userId = task.assignedTo.id;
+      const stats = userStatsMap.get(userId) || {
+        userId,
+        completedTasks: 0,
+        totalStoryPoints: 0,
+        averageProgress: 0,
+        efficiency: 0,
+      };
+
+      stats.totalStoryPoints += task.storyPoints;
+      if (task.status === TaskStatus.completed) {
+        stats.completedTasks++;
+      }
+      stats.averageProgress += task.progress || 0;
+
+      userStatsMap.set(userId, stats);
+    });
+
+    return Array.from(userStatsMap.values()).map(stats => {
+      const userTasks = tasks.filter(task => task.assignedTo?.id === stats.userId);
+      stats.averageProgress = userTasks.length > 0 ? 
+        stats.averageProgress / userTasks.length : 0;
+      stats.efficiency = stats.totalStoryPoints > 0 ? 
+        (stats.completedTasks * 100) / userTasks.length : 0;
+      return stats;
+    });
+  }
+
+  private async getRecentTasks(): Promise<Task[]> {
+    return await this.taskRepository.find({
+      order: { createdAt: 'DESC' },
+      take: 5,
+      relations: ['requestedBy', 'assignedTo'],
+    });
   }
 }

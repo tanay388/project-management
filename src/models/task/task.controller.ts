@@ -4,6 +4,8 @@ import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { TaskFilterDto } from './dto/task-filter.dto';
+import { DashboardFilterDto } from './dto/dashboard-filter.dto';
+import { DashboardResponseDto } from './dto/dashboard-response.dto';
 import { Task, TaskStatus } from './entities/task.entity';
 import { FirebaseSecure } from '../user/decorator/firebase.secure.decorator';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
@@ -81,5 +83,12 @@ export class TaskController {
   @ApiResponse({ status: 200, description: 'Task deleted successfully' })
   remove(@Param('id') id: number) {
     return this.taskService.remove(id);
+  }
+
+  @Get('dashboard')
+  @ApiOperation({ summary: 'Get dashboard statistics' })
+  @ApiResponse({ status: 200, description: 'Return dashboard statistics', type: DashboardResponseDto })
+  getDashboardStats(@Query() filters: DashboardFilterDto) {
+    return this.taskService.getDashboardStats(filters);
   }
 }

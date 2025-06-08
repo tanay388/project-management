@@ -89,6 +89,13 @@ export class Task extends BaseClassEntity {
   })
   status: TaskStatus;
 
+  @Column({ nullable: false, default: 0 })
+  storyPoints: number;
+
+  @Column({ nullable: true, default: 0 })
+  progress: number;
+
+
   @Column('simple-array', { nullable: true })
   attachments: string[];
 
