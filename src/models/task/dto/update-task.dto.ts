@@ -1,4 +1,4 @@
-import { IsOptional, IsEnum, IsString, IsUUID, IsDate, IsArray } from 'class-validator';
+import { IsOptional, IsEnum, IsString, IsUUID, IsDate, IsArray, IsNumber } from 'class-validator';
 import { ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { TaskType, TaskStatus, TaskPriority } from '../entities/task.entity';
 import { Type } from 'class-transformer';
@@ -11,4 +11,9 @@ export class UpdateTaskDto extends PartialType(CreateTaskDto) {
   @IsEnum(TaskStatus)
   status?: TaskStatus;
 
+  @ApiPropertyOptional({description: 'story points '})
+  
+  @IsNumber()
+  @Type(() => Number)
+  progress: number;
 }

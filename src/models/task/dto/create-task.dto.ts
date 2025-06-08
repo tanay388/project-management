@@ -1,4 +1,4 @@
-import { IsString, IsEnum, IsNotEmpty, IsUUID, IsDate, IsOptional, IsArray } from 'class-validator';
+import { IsString, IsEnum, IsNotEmpty, IsUUID, IsDate, IsOptional, IsArray, IsNumber } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TaskType, TaskPriority } from '../entities/task.entity';
 import { Type } from 'class-transformer';
@@ -54,6 +54,12 @@ export class CreateTaskDto {
   @IsString()
   @IsNotEmpty()
   assignedToId: string;
+
+  @ApiProperty({description: 'story points '})
+  @IsNotEmpty()
+  @IsNumber()
+  @Type(() => Number)
+  storyPoints: number;
 
   @ApiPropertyOptional({ description: 'Admin panel link' })
   @IsString()
