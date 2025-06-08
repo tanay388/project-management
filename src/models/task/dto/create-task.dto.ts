@@ -1,6 +1,7 @@
 import { IsString, IsEnum, IsNotEmpty, IsUUID, IsDate, IsOptional, IsArray } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TaskType, TaskPriority } from '../entities/task.entity';
+import { Type } from 'class-transformer';
 
 export class CreateTaskDto {
   @ApiProperty({ description: 'Task title' })
@@ -21,6 +22,7 @@ export class CreateTaskDto {
   @ApiProperty({ description: 'Target completion date' })
   @IsDate()
   @IsNotEmpty()
+  @Type(() => Date)
   targetCompletionDate: Date;
 
   @ApiProperty({ description: 'Task description' })
@@ -49,7 +51,7 @@ export class CreateTaskDto {
   acceptanceCriteria: string;
 
   @ApiProperty({ description: 'User ID to assign the task to' })
-  @IsUUID()
+  @IsString()
   @IsNotEmpty()
   assignedToId: string;
 
