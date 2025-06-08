@@ -93,24 +93,6 @@ export class Task extends BaseClassEntity {
   attachments: string[];
 
   toJSON() {
-    return {
-      id: this.id,
-      title: this.title,
-      type: this.type,
-      requestedBy: this.requestedBy?.toReturnJson(),
-      priority: this.priority,
-      targetCompletionDate: this.targetCompletionDate,
-      description: this.description,
-      businessJustification: this.businessJustification,
-      technicalRequirements: this.technicalRequirements,
-      dependencies: this.dependencies,
-      acceptanceCriteria: this.acceptanceCriteria,
-      assignedTo: this.assignedTo?.toReturnJson(),
-      adminPanelLink: this.adminPanelLink,
-      status: this.status,
-      attachments: this.attachments,
-      createdAt: this.createdAt,
-      updatedAt: this.updateAt
-    };
+    return this;
   }
 }
