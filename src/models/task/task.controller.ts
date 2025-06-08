@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Request, UseInterceptors, UploadedFiles } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Request, UseInterceptors, UploadedFiles, ParseIntPipe, ValidationPipe } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -47,10 +47,17 @@ export class TaskController {
     return this.taskService.findMyTasks(req.user.id, filters);
   }
 
+  @Get('dashboard')
+  @ApiOperation({ summary: 'Get dashboard statistics' })
+  @ApiResponse({ status: 200, description: 'Return dashboard statistics', type: DashboardResponseDto })
+  getDashboardStats(@Query(new ValidationPipe({ transform: true })) filters: DashboardFilterDto) {
+    return this.taskService.getDashboardStats(filters);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get task by id' })
   @ApiResponse({ status: 200, description: 'Return found task', type: Task })
-  findOne(@Param('id') id: number) {
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.taskService.findOne(id);
   }
 
@@ -64,7 +71,7 @@ export class TaskController {
       ],
     ),
   )
-  update(@Param('id') id: number, @Body() updateTaskDto: UpdateTaskDto, @UploadedFiles() files: { files?: Express.Multer.File[] }) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() updateTaskDto: UpdateTaskDto, @UploadedFiles() files: { files?: Express.Multer.File[] }) {
     return this.taskService.update(id, updateTaskDto, files.files);
   }
 
@@ -72,7 +79,7 @@ export class TaskController {
   @ApiOperation({ summary: 'Update task status' })
   @ApiResponse({ status: 200, description: 'Task status updated successfully', type: Task })
   updateStatus(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body('status') status: TaskStatus,
   ) {
     return this.taskService.updateStatus(id, status);
@@ -81,14 +88,9 @@ export class TaskController {
   @Delete(':id')
   @ApiOperation({ summary: 'Delete task' })
   @ApiResponse({ status: 200, description: 'Task deleted successfully' })
-  remove(@Param('id') id: number) {
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.taskService.remove(id);
   }
 
-  @Get('dashboard')
-  @ApiOperation({ summary: 'Get dashboard statistics' })
-  @ApiResponse({ status: 200, description: 'Return dashboard statistics', type: DashboardResponseDto })
-  getDashboardStats(@Query() filters: DashboardFilterDto) {
-    return this.taskService.getDashboardStats(filters);
-  }
+
 }

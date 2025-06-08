@@ -108,6 +108,10 @@ export class TaskService {
   }
 
   async findOne(id: number): Promise<Task> {
+    if (!id || isNaN(id)) {
+      throw new NotFoundException('Invalid task ID');
+    }
+
     const task = await this.taskRepository.findOne({
       where: { id },
       relations: ['requestedBy', 'assignedTo'],
