@@ -223,7 +223,7 @@ export class TaskService {
     tasks.forEach(task => {
       if (!task.assignedTo) return;
 
-      const userId = task.assignedTo.id;
+      const userId = task.assignedTo.email;
       const stats = userStatsMap.get(userId) || {
         userId,
         completedTasks: 0,
