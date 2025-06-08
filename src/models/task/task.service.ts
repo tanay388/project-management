@@ -129,7 +129,7 @@ export class TaskService {
         `tasks/${new Date().getFullYear()}/${new Date().getMonth()}/${new Date().getDate()}`,
       )
 
-      task.attachments = [...task.attachments, ...attachments];
+      updateTaskDto.attachments = [...task.attachments, ...attachments];
     }
     Object.assign(task, updateTaskDto);
     return await this.taskRepository.save(task);
