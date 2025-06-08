@@ -12,6 +12,7 @@ import { AppCacheModule } from './providers/cache/app.cache.module';
 import { UserModule } from './models/user/user.module';
 import { NotificationModule } from './providers/notification/notification.module';
 import { FirebaseUserMiddlewareExtractor } from './models/user/middleware/firebaseUserMiddlewareExtractor';
+import { TaskModule } from './models/task/task.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { FirebaseUserMiddlewareExtractor } from './models/user/middleware/fireba
     AppCacheModule,
     NotificationModule,
     UserModule,
+    TaskModule
   ],
   controllers: [AppController],
   providers: [AppService],
