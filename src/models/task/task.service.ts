@@ -19,7 +19,7 @@ export class TaskService {
 
   async create(createTaskDto: CreateTaskDto, requestedBy: FirebaseUser, files: { files?: Express.Multer.File[]; }): Promise<Task> {
     
-    if(files.files?.length > 0){
+    if(!files?.files?.length){
     const attachments = await this.uploader.uploadFiles(
       files.files,
       `tasks/${new Date().getFullYear()}/${new Date().getMonth()}/${new Date().getDate()}`,
@@ -123,7 +123,7 @@ export class TaskService {
     
     const task = await this.findOne(id);
 
-    if(files.length ){
+    if(!files?.length){
       const attachments = await this.uploader.uploadFiles(
         files,
         `tasks/${new Date().getFullYear()}/${new Date().getMonth()}/${new Date().getDate()}`,
