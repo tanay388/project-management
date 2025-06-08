@@ -7,6 +7,8 @@ import { TaskFilterDto } from './dto/task-filter.dto';
 import { Task, TaskStatus } from './entities/task.entity';
 import { FirebaseSecure } from '../user/decorator/firebase.secure.decorator';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { FUser } from '../user/decorator/firebase.user.decorator';
+import { FirebaseUser } from 'src/providers/firebase/firebase.service';
 
 @ApiTags('tasks')
 @Controller('tasks')
@@ -25,8 +27,8 @@ export class TaskController {
       ],
     ),
   )
-  create(@Body() createTaskDto: CreateTaskDto, @Request() req, @UploadedFiles() files: { files?: Express.Multer.File[] }) {
-    return this.taskService.create(createTaskDto, req.user, files);
+  create(@FUser() user: FirebaseUser, @Body() createTaskDto: CreateTaskDto, @Request() req, @UploadedFiles() files: { files?: Express.Multer.File[] }) {
+    return this.taskService.create(createTaskDto, user, files);
   }
 
   @Get()

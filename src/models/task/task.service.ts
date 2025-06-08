@@ -7,6 +7,7 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { TaskFilterDto } from './dto/task-filter.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { UploaderService } from 'src/providers/uploader/uploader.service';
+import { FirebaseUser } from 'src/providers/firebase/firebase.service';
 
 @Injectable()
 export class TaskService {
@@ -16,7 +17,7 @@ export class TaskService {
     private uploader: UploaderService,
   ) {}
 
-  async create(createTaskDto: CreateTaskDto, requestedBy: User, files: { files?: Express.Multer.File[]; }): Promise<Task> {
+  async create(createTaskDto: CreateTaskDto, requestedBy: FirebaseUser, files: { files?: Express.Multer.File[]; }): Promise<Task> {
     const attachments = await this.uploader.uploadFiles(
       files.files,
       `tasks/${new Date().getFullYear()}/${new Date().getMonth()}/${new Date().getDate()}`,
@@ -26,11 +27,16 @@ export class TaskService {
     
     const task = this.taskRepository.create({
       ...createTaskDto,
-      requestedBy: {id: requestedBy.id},
+      requestedBy: {id: requestedBy.uid},
       assignedTo: {id: createTaskDto.assignedToId},
 
     });
-    return await this.taskRepository.save(task);
+    await this.taskRepository.save(task);
+
+    return await this.taskRepository.findOne({
+      where: { id: task.id },
+      relations: ['requestedBy', 'assignedTo'],
+    });
   }
 
   async findAll(filters: TaskFilterDto) {
