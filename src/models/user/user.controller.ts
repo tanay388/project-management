@@ -47,7 +47,6 @@ export class UserController {
   }
   
   @Get('all')
-  @AdminOnly()
   @ApiOperation({ summary: 'Get all users with filtering and sorting (Admin only)' })
   @ApiQuery({ name: 'status', enum: UserStatus, required: false })
   @ApiQuery({ name: 'role', enum: UserRole, required: false })
