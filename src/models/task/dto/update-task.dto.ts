@@ -12,7 +12,7 @@ export class UpdateTaskDto extends PartialType(CreateTaskDto) {
   status?: TaskStatus;
 
   @ApiPropertyOptional({description: 'story points '})
-  
+  @IsOptional()
   @IsNumber()
   @Type(() => Number)
   progress: number;
