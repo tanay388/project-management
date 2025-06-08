@@ -18,13 +18,15 @@ export class TaskService {
   ) {}
 
   async create(createTaskDto: CreateTaskDto, requestedBy: FirebaseUser, files: { files?: Express.Multer.File[]; }): Promise<Task> {
+    
+    if(files.files?.length > 0){
     const attachments = await this.uploader.uploadFiles(
       files.files,
       `tasks/${new Date().getFullYear()}/${new Date().getMonth()}/${new Date().getDate()}`,
     );
 
     createTaskDto.attachments = attachments;
-    
+    }
     const task = this.taskRepository.create({
       ...createTaskDto,
       requestedBy: {id: requestedBy.uid},
@@ -118,14 +120,17 @@ export class TaskService {
 
   async update(id: number, updateTaskDto: UpdateTaskDto, files: Express.Multer.File[]): Promise<Task> {
 
-    const attachments = await this.uploader.uploadFiles(
-      files,
-      `tasks/${new Date().getFullYear()}/${new Date().getMonth()}/${new Date().getDate()}`,
-    )
+    
     const task = await this.findOne(id);
 
-    task.attachments = [...task.attachments, ...attachments];
-    
+    if(files.length ){
+      const attachments = await this.uploader.uploadFiles(
+        files,
+        `tasks/${new Date().getFullYear()}/${new Date().getMonth()}/${new Date().getDate()}`,
+      )
+
+      task.attachments = [...task.attachments, ...attachments];
+    }
     Object.assign(task, updateTaskDto);
     return await this.taskRepository.save(task);
   }
