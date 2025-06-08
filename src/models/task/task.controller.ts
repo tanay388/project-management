@@ -11,6 +11,7 @@ import { FirebaseSecure } from '../user/decorator/firebase.secure.decorator';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { FUser } from '../user/decorator/firebase.user.decorator';
 import { FirebaseUser } from 'src/providers/firebase/firebase.service';
+import { UserReportFilterDto, UserReportResponseDto } from './dto/user-report.dto';
 
 @ApiTags('tasks')
 @Controller('tasks')
@@ -54,6 +55,11 @@ export class TaskController {
     return this.taskService.getDashboardStats(filters);
   }
 
+  @Get('user-report')
+  async getUserReport(@Query() filters: UserReportFilterDto): Promise<UserReportResponseDto> {
+    return this.taskService.getUserReport(filters);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get task by id' })
   @ApiResponse({ status: 200, description: 'Return found task', type: Task })
@@ -91,6 +97,7 @@ export class TaskController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.taskService.remove(id);
   }
+
 
 
 }

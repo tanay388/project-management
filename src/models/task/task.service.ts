@@ -10,6 +10,7 @@ import { DashboardFilterDto } from './dto/dashboard-filter.dto';
 import { DashboardResponseDto, TaskStats, UserStats } from './dto/dashboard-response.dto';
 import { UploaderService } from 'src/providers/uploader/uploader.service';
 import { FirebaseUser } from 'src/providers/firebase/firebase.service';
+import { UserReportFilterDto, UserReportResponseDto } from './dto/user-report.dto';
 
 @Injectable()
 export class TaskService {
@@ -257,5 +258,72 @@ export class TaskService {
       take: 5,
       relations: ['requestedBy', 'assignedTo'],
     });
+  }
+
+  async getUserReport(filters: UserReportFilterDto): Promise<UserReportResponseDto> {
+    const where: FindOptionsWhere<Task> = {
+      assignedTo: { id: filters.userId }
+    };
+
+    if (filters.fromDate && filters.toDate) {
+      where.createdAt = Between(filters.fromDate, filters.toDate);
+    }
+
+    const tasks = await this.taskRepository.find({
+      where,
+      relations: ['requestedBy', 'assignedTo'],
+    });
+
+    const completedTasks = tasks.filter(task => task.status === TaskStatus.completed);
+    const inProgressTasks = tasks.filter(task => task.status === TaskStatus.inProgress);
+
+    const calculateAverageCompletionTime = (tasks: Task[]) => {
+      const completionTimes = tasks
+        .filter(task => task.completedAt)
+        .map(task => new Date(task.completedAt).getTime() - new Date(task.createdAt).getTime());
+      return completionTimes.length ? Math.round(completionTimes.reduce((a, b) => a + b, 0) / completionTimes.length / (1000 * 60 * 60 * 24)) : 0;
+    };
+
+    const calculateEfficiency = (tasks: Task[]) => {
+      const completed = tasks.filter(task => task.status === TaskStatus.completed);
+      return completed.length ? (completed.reduce((sum, task) => sum + (task.storyPoints || 0), 0) / tasks.length) * 100 : 0;
+    };
+
+    return {
+      taskMetrics: {
+        totalTasks: tasks.length,
+        completedTasks: completedTasks.length,
+        inProgressTasks: inProgressTasks.length,
+        averageCompletionTime: calculateAverageCompletionTime(completedTasks),
+        onTimeDelivery: completedTasks.filter(task => 
+          task.completedAt && task.targetCompletionDate && 
+          new Date(task.completedAt) <= new Date(task.targetCompletionDate)
+        ).length,
+      },
+      productivityMetrics: {
+        totalStoryPoints: tasks.reduce((sum, task) => sum + (task.storyPoints || 0), 0),
+        averageStoryPointsPerTask: tasks.length ? tasks.reduce((sum, task) => sum + (task.storyPoints || 0), 0) / tasks.length : 0,
+        storyPointsCompleted: completedTasks.reduce((sum, task) => sum + (task.storyPoints || 0), 0),
+        efficiency: calculateEfficiency(tasks),
+      },
+      timelineMetrics: {
+        tasksCompletedOnTime: completedTasks.filter(task => 
+          task.completedAt && task.targetCompletionDate && 
+          new Date(task.completedAt) <= new Date(task.targetCompletionDate)
+        ).length,
+        tasksDelayed: completedTasks.filter(task => 
+          task.completedAt && task.targetCompletionDate && 
+          new Date(task.completedAt) > new Date(task.targetCompletionDate)
+        ).length,
+        averageDelay: calculateAverageCompletionTime(completedTasks.filter(task => 
+          task.completedAt && task.targetCompletionDate && 
+          new Date(task.completedAt) > new Date(task.targetCompletionDate)
+        )),
+      },
+      qualityMetrics: {
+        tasksNeedingRevision: tasks.filter(task => task.status === TaskStatus.in_review).length,
+        firstTimeAcceptanceRate: null,
+      },
+    };
   }
 }

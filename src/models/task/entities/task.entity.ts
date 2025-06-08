@@ -1,13 +1,9 @@
 import {
   Entity,
   Column,
-  BaseEntity,
-  PrimaryGeneratedColumn,
-  CreateDateColumn,
-  UpdateDateColumn,
-  DeleteDateColumn,
   ManyToOne,
-  JoinColumn
+  JoinColumn,
+  BeforeUpdate
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { BaseClassEntity } from 'src/common/entities/base.extend-entity';
@@ -23,7 +19,8 @@ export enum TaskStatus {
   new = 'new',
   in_progress = 'in_progress',
   in_review = 'in_review',
-  completed = 'completed'
+  completed = 'completed',
+  inProgress = "inProgress"
 }
 
 export enum TaskPriority {
@@ -99,7 +96,18 @@ export class Task extends BaseClassEntity {
   @Column('simple-array', { nullable: true })
   attachments: string[];
 
+  @Column({ nullable: true })
+  completedAt: Date;
+
   toJSON() {
     return this;
+  }
+
+  @BeforeUpdate()
+  updateProgress() {
+    if (this.status === TaskStatus.completed) {
+      this.progress = 100;
+      this.completedAt = new Date();
+    }
   }
 }
